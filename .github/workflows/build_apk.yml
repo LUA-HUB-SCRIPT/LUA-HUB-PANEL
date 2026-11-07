@@ -39,7 +39,12 @@ jobs:
           
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      # Pake Gradle bawaan runner, gak pake ./gradlew lagi
+      # Downgrade Gradle ke versi 8.7 yang lebih stabil & kompatibel
+      - name: Setup Gradle 8.7
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
       - name: Build APK with Gradle
         run: gradle assembleDebug
 

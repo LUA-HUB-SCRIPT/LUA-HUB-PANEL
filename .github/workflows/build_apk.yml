@@ -20,16 +20,29 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK Licenses
+      - name: Setup Android SDK manually & Accept Licenses
         run: |
-          sdkmanager --version
+          # Buat direktori SDK dan download commandlinetools secara manual
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+          
+          echo "Downloading Command-line Tools..."
+          curl -s https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip -o commandlinetools.zip
+          unzip -q commandlinetools.zip -d $ANDROID_SDK_ROOT/cmdline-tools
+          mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+          
+          # Tambahkan ke PATH environment
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+
+          # Inject lisensi otomatis agar tidak pernah prompt interaktif
           mkdir -p $ANDROID_SDK_ROOT/licenses
           echo "d56f5187479451eabf01fb78af6dfcb137a60540" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_SDK_ROOT/licenses/android-sdk-preview-license
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          # Accept license tambahan menggunakanyes pipe
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

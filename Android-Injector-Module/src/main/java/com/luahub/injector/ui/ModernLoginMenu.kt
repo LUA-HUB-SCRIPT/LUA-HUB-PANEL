@@ -1,4 +1,4 @@
-package com.luahub.injector.ui
+package com.ushub.injector.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

@@ -1,39 +1,70 @@
-name: Build LUAHUB APK
+
+name: LUAHUB PANEL - APK Builder
 
 on:
   push:
     branches:
-      - main  # Otomatis jalan setiap kali kamu push ke branch main
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    name: Build LUAHUB Android APK
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Source Code
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-    - name: Setup Gradle Engine
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: 8.2  # Otomatis download Gradle tanpa file wrapper lokal
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-    - name: Clean Project Build Folder
-      run: gradle clean
-      continue-on-error: true
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-    - name: Compile and Build Debug APK
-      run: gradle :Android-Injector-Module:assembleDebug
-      continue-on-error: true  # Memaksa server tetap lanjut jika ada warning kode
+      - name: Grant Gradle Permission
+        run: chmod +x gradlew
 
-    - name: Upload APK Hasil Jadi
-      uses: actions/upload-artifact@v4
-      with:
-        name: LUAHUB-V1.0.0-DebugAPK
-        path: Android-Injector-Module/build/outputs/apk/debug/
+      - name: Check Project
+        run: |
+          echo "Checking LUAHUB PANEL..."
+          ls -la
+          echo "Checking Android module..."
+          ls -la Android-Injector-Module
+
+      - name: Build Debug APK
+        run: |
+          ./gradlew \
+            :Android-Injector-Module:assembleDebug \
+            --no-daemon \
+            --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUAHUB-PANEL-APK
+          path: Android-Injector-Module/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Build Completed
+        if: success()
+        run: echo "LUAHUB PANEL APK BUILD SUCCESS!"
+
+      - name: Build Failed
+        if: failure()
+        run: echo "LUAHUB PANEL APK BUILD FAILED!"

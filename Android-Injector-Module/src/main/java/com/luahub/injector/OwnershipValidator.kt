@@ -1,4 +1,4 @@
-package com.luahub.injector
+package com.ushub.injector
 
 import android.content.Context
 import java.io.File

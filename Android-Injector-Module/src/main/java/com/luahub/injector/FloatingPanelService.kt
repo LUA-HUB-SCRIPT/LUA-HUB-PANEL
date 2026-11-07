@@ -1,4 +1,5 @@
-package com.luahub.injector
+package com.ushub.injector
+
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

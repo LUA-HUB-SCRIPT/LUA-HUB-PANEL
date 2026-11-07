@@ -9,11 +9,16 @@ import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.luahub.injector.ui.ModernFloatingMenu
+import com.luahub.injector.ui.ModernLoginMenu
 
 class FloatingPanelService : Service() {
     private var windowManager: WindowManager? = null
@@ -28,11 +33,30 @@ class FloatingPanelService : Service() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         composeView = ComposeView(this).apply {
             setContent {
-                ModernFloatingMenu(
-                    onHeadlockChanged = { active -> /* Kirim trigger aktif ke Game Client memory writer */ },
-                    onEspChanged = { active -> /* Kirim trigger aktif ke Game Client memory writer */ },
-                    onMinimizeClick = { stopSelf() }
-                )
+                // Mengecek status lisensi offline di folder com.dts.freefireth secara real-time
+                var hasLicense by remember { mutableStateOf(OwnershipValidator.isLicenseValid()) }
+
+                if (!hasLicense) {
+                    // Jika belum isi key atau key 1 minggu sudah expired, munculkan GUI Login Kustom
+                    ModernLoginMenu(
+                        onLoginSuccess = { 
+                            hasLicense = true 
+                        }
+                    )
+                } else {
+                    // Jika key valid / permanen, langsung bypass masuk ke panel fitur melayang
+                    ModernFloatingMenu(
+                        onHeadlockChanged = { active -> 
+                            // Hubungkan ke trigger fitur Headlock di Game Client
+                        },
+                        onEspChanged = { active -> 
+                            // Hubungkan ke trigger fitur ESP X-Ray di Game Client
+                        },
+                        onMinimizeClick = { 
+                            stopSelf() 
+                        }
+                    )
+                }
             }
         }
 

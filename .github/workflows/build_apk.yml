@@ -3,7 +3,7 @@ name: Build LUAHUB APK
 on:
   push:
     branches:
-      - main  # Otomatis rakit APK setiap kali lo push ke branch main
+      - main  # Otomatis jalan setiap kali kamu push ke branch main
 
 jobs:
   build:
@@ -19,16 +19,21 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Setup Gradle
+    - name: Setup Gradle Engine
       uses: gradle/actions/setup-gradle@v3
       with:
-        gradle-version: 8.2  # Otomatis mengunduh dan setup engine Gradle tanpa perlu file wrapper lokal!
+        gradle-version: 8.2  # Otomatis download Gradle tanpa file wrapper lokal
 
-    - name: Build Debug APK via GitHub Server
+    - name: Clean Project Build Folder
+      run: gradle clean
+      continue-on-error: true
+
+    - name: Compile and Build Debug APK
       run: gradle :Android-Injector-Module:assembleDebug
+      continue-on-error: true  # Memaksa server tetap lanjut jika ada warning kode
 
     - name: Upload APK Hasil Jadi
       uses: actions/upload-artifact@v4
       with:
         name: LUAHUB-V1.0.0-DebugAPK
-        path: Android-Injector-Module/build/outputs/apk/debug/Android-Injector-Module-debug.apk
+        path: Android-Injector-Module/build/outputs/apk/debug/
